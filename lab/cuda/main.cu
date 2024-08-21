@@ -7,6 +7,8 @@
 // declarations
 extern "C" __global__ void cinn_kernel(const float* src, const float* src_1, const float* src_10, float* dst);
 extern "C" __global__ void simplified_kernel(const float* src, const float* src_1, const float* src_10, float* dst);
+extern "C" __global__ void  cinn_bce_kernel_optimized(const float* __restrict__ var, const float* __restrict__ var_0, float* __restrict__ var_15);
+extern "C" __global__ void  cinn_bce_kernel(const float* __restrict__ var, const float* __restrict__ var_0, float* __restrict__ var_15);
 
 // CUDA call wraper
 #define CUDA_CALL(call) {                                    \
@@ -20,11 +22,11 @@ extern "C" __global__ void simplified_kernel(const float* src, const float* src_
 int main() {
     try {
         // vector item size
-        constexpr size_t srcSize = 1536 * 256 * 4;
-        constexpr size_t dstSize = 1536*256 * 4;
+        constexpr size_t srcSize = 21824 * 15;
+        constexpr size_t dstSize = 21824 * 15;
 
-        constexpr dim3 blocks(1536);
-        constexpr dim3 threads(256);
+        constexpr dim3 blocks(32);
+        constexpr dim3 threads(1024);
 
         // DRAM buffer initialize
         std::vector<float> h_src(srcSize);
@@ -61,7 +63,9 @@ int main() {
 
         // summon cuda kernel
         //cinn_kernel<<<blocks, threads>>>(d_src, d_src_1, d_src_10, d_dst);
-        simplified_kernel<<<blocks, threads>>>(d_src, d_src_1, d_src_10, d_dst);
+        //simplified_kernel<<<blocks, threads>>>(d_src, d_src_1, d_src_10, d_dst);
+        cinn_bce_kernel<<<blocks, threads>>>(d_src, d_src_1, d_dst);
+        cinn_bce_kernel_optimized<<<blocks, threads>>>(d_src, d_src_1, d_dst);
 
         //  data xfer from device to host
         CUDA_CALL(cudaMemcpy(h_dst.data(), d_dst, dstSize * sizeof(float), cudaMemcpyDeviceToHost));
@@ -110,5 +114,57 @@ void __launch_bounds__(256) simplified_kernel(const float* __restrict__ src, con
       };
     }
   }
+}
+
+__global__
+void __launch_bounds__(1024) cinn_bce_kernel(const float* __restrict__ var, const float* __restrict__ var_0, float* __restrict__ var_15)
+{
+  float _var_15_rf_temp_buffer [ 1 ];
+  extern __shared__ uint8_t dyn_shared_buffer[];
+  float *shm32__fp32_reduce = (float*)&dyn_shared_buffer[ 0 ];
+  float* var_15_rf = _var_15_rf_temp_buffer;
+  float* var_15_rf__reduce_init = _var_15_rf_temp_buffer;
+  if (((int)blockIdx.x < 1ll)) {
+    if (((int)threadIdx.x < 1024ll)) {
+      var_15_rf__reduce_init[0] = 0.00000000f;
+      for (int32_t reduce_k_0_reduce_k_1_reduce_k_2_fused = 0; reduce_k_0_reduce_k_1_reduce_k_2_fused < 320; reduce_k_0_reduce_k_1_reduce_k_2_fused += 1) {
+        if ((((1024 * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) < 327360ll)) {
+          float local_var_2 = var_0[((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) % 15ll) + ((((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) / 21824ll) * 327360ll) + (15ll * ((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) % 21824ll))))];
+          float local_var_3 = var[((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) % 15ll) + ((((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) / 21824ll) * 327360ll) + (15ll * ((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) % 21824ll))))];
+          float local_var_4 = var_0[((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) % 15ll) + ((((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) / 21824ll) * 327360ll) + (15ll * ((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) % 21824ll))))];
+          float local_var_5 = var[((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) % 15ll) + ((((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) / 21824ll) * 327360ll) + (15ll * ((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) % 21824ll))))];
+          float local_var_6 = var[((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) % 15ll) + ((((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) / 21824ll) * 327360ll) + (15ll * ((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) % 21824ll))))];
+          float local_var_7 = var_0[((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) % 15ll) + ((((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) / 21824ll) * 327360ll) + (15ll * ((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) % 21824ll))))];
+          float local_var_8 = var[((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) % 15ll) + ((((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) / 21824ll) * 327360ll) + (15ll * ((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) % 21824ll))))];
+          float local_var_9 = var_0[((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) % 15ll) + ((((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) / 21824ll) * 327360ll) + (15ll * ((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) % 21824ll))))];
+          var_15_rf[0] = (var_15_rf[0] + (0.00000000f + ((-1.00000000f * ((local_var_2 * logf(local_var_3)) + ((1.00000000f - local_var_4) * logf((1.00000000f - local_var_5))))) * ((local_var_6 - local_var_7) * (local_var_8 - local_var_9)))));
+        };
+      };
+      var_15[0] = var_15_rf[0];
+    };
+  };
+}
+
+__global__
+void __launch_bounds__(1024) cinn_bce_kernel_optimized(const float* __restrict__ var, const float* __restrict__ var_0, float* __restrict__ var_15)
+{
+  float _var_15_rf_temp_buffer [ 1 ];
+  extern __shared__ uint8_t dyn_shared_buffer[];
+  float *shm32__fp32_reduce = (float*)&dyn_shared_buffer[ 0 ];
+  float* var_15_rf = _var_15_rf_temp_buffer;
+  float* var_15_rf__reduce_init = _var_15_rf_temp_buffer;
+  if (((int)blockIdx.x < 1ll)) {
+    if (((int)threadIdx.x < 1024ll)) {
+      var_15_rf__reduce_init[0] = 0.00000000f;
+      for (int32_t reduce_k_0_reduce_k_1_reduce_k_2_fused = 0; reduce_k_0_reduce_k_1_reduce_k_2_fused < 320; reduce_k_0_reduce_k_1_reduce_k_2_fused += 1) {
+        if ((((1024 * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) < 327360ll)) {
+          float local_var_2 = var_0[((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) % 15ll) + ((((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) / 21824ll) * 327360ll) + (15ll * ((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) % 21824ll))))];
+          float local_var_3 = var[((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) % 15ll) + ((((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) / 21824ll) * 327360ll) + (15ll * ((((1024ll * reduce_k_0_reduce_k_1_reduce_k_2_fused) + (int)threadIdx.x) / 15ll) % 21824ll))))];
+          var_15_rf[0] = (var_15_rf[0] + (0.00000000f + ((-1.00000000f * ((local_var_2 * logf(local_var_3)) + ((1.00000000f - local_var_2) * logf((1.00000000f - local_var_3))))) * ((local_var_3 - local_var_2) * (local_var_3 - local_var_2)))));
+        };
+      };
+      var_15[0] = var_15_rf[0];
+    };
+  };
 }
 }

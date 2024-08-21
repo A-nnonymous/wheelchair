@@ -3,3 +3,5 @@
 *.sqlite
 *.log
 *.csv
+*.tar.gz
+
